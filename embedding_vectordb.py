@@ -31,3 +31,20 @@ documents = [
 
 # The user's query we want to compare against
 user_query = "What is the best form of exercise using wheels?"
+
+gemini_embedder = GoogleGenerativeAIEmbeddings(
+    model="models/text-embedding-004",
+    google_api_key=gemini_api_key
+)
+
+# Generate embeddings for the documents and the query
+try:
+    doc_embeddings_gemini = gemini_embedder.embed_documents(documents)
+    query_embedding_gemini = gemini_embedder.embed_query(user_query)
+
+    print(f"Gemini Embedding Dimension: {len(query_embedding_gemini)}")
+    print(f"Vector for Doc 1 (start): {doc_embeddings_gemini[0][:5]}...")
+    print(f"Vector for Query (start): {query_embedding_gemini[:5]}...")
+
+except Exception as e:
+    print(f"\nError using Gemini Embedder (Check API key): {e}")

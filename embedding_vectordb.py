@@ -48,3 +48,20 @@ try:
 
 except Exception as e:
     print(f"\nError using Gemini Embedder (Check API key): {e}")
+
+
+# Instead of using ChromaDB's wrapper for direct embedding,
+# we will use the SentenceTransformer library directly, as the wrapper
+# does not expose `embed_documents` or `embed_query` methods in this manner for external calls.
+from sentence_transformers import SentenceTransformer
+
+# Initialize the open-source sentence transformer model
+model_name = "all-MiniLM-L6-v2"
+hf_model = SentenceTransformer(model_name)
+
+# Generate embeddings using the open-source model
+doc_embeddings_hf = hf_model.encode(documents).tolist()
+query_embedding_hf = hf_model.encode(user_query).tolist()
+
+print(f"\nHF Embedding Dimension: {len(query_embedding_hf)}")
+print(f"Vector for Doc 1 (start): {doc_embeddings_hf[0][:5]}...")

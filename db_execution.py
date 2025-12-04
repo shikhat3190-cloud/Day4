@@ -87,3 +87,22 @@ def generate_sql(question: str) -> str:
     data = json.loads(json_str)
     sql_query = data.get("SQL")
     return sql_query
+
+
+def run_sql(query: str):
+    conn = sqlite3.connect("example.db")
+    cursor = conn.cursor()
+    try:
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        columns = [description[0] for description in cursor.description]
+        print("\n Results:")
+        print(columns)
+        for row in rows:
+            print(row)
+    except Exception as e:
+        print(" Error executing SQL:", e)
+    finally:
+        conn.close()
+
+setupdb()

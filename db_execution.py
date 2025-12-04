@@ -38,3 +38,52 @@ def setupdb():
 
     conn.commit()
     conn.close()
+
+
+
+# Define a simple chain template for easy switching between models
+def create_roles_chain(model):
+    prompt = ChatPromptTemplate.from_template("{input}")
+    return prompt | model | StrOutputParser() # prompt -> model -> StrOutputParser()
+
+def generate_sql(question: str) -> str:
+    schema_description = """
+    Table: customers
+    - id (integer)
+    - name (text)
+    - email (text)
+    - signup_date (date)
+    """
+
+    final_prompt = f"""
+    ### You are an expert SQL query writer. Who translates user requirements into sql queries. I have given you database schema.
+    Use this database schema to generate sql queries.
+
+    ### Database Schema:
+    {schema_description}
+
+    ### Question:
+    {question}
+
+    ### Output format: The output format should be json object with 'SQL' and value as  generated sql query
+          "SQL": "..."
+
+    """
+
+    gemini_model = ChatGoogleGenerativeAI(
+        model="gemini-2.0-flash-lite-001",
+        google_api_key=gemini_api_key,
+        temperature=0.3 ) 
+
+    print("---   Response ---")
+
+    sql_query = create_roles_chain(gemini_model).invoke({"input": final_prompt})
+    match = re.search(r"```json\s*(\{.*?\})\s*```", sql_query, re.DOTALL)
+    if not match:
+        raise ValueError("No JSON code block found.")
+    json_str = match.group(1)
+
+    # Step 2: Parse JSON and extract the SQL
+    data = json.loads(json_str)
+    sql_query = data.get("SQL")
+    return sql_query
